@@ -554,7 +554,7 @@ impl S3 for FileSystem {
 
         let dst_path = self.resolve_abs_path(format!(".upload_id-{upload_id}.part-{part_number}"))?;
         let src_path = self.get_object_path(src_bucket, src_key)?;
-        
+
         let src_file = fs::File::open(&src_path).await.map_err(|e| s3_error!(e, NoSuchKey))?;
 
         let file_metadata = try_!(src_file.metadata().await);
@@ -570,7 +570,10 @@ impl S3 for FileSystem {
 
         copy_bytes(body, &mut writer).await?;
 
-        let output = UploadPartCopyOutput { ..Default::default() };
+        let output = UploadPartCopyOutput {
+            copy_part_result: Some(CopyPartResult { ..Default::default() }),
+            ..Default::default()
+        };
         Ok(S3Response::new(output))
     }
 
